@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stockwise</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#F7F8FA;--ink:#14181F;--mut:#5B6472;--line:#E1E5EB;--card:#fff;--acc:#0F766E;--good:#15803D;--bad:#B42318;--mid:#9A6700;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1319;--ink:#EDF0F4;--mut:#98A2B1;--line:#26303C;--card:#161C24;--acc:#2DD4BF;--good:#4ADE80;--bad:#F87171;--mid:#FBBF24;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F1319;--ink:#EDF0F4;--mut:#98A2B1;--line:#26303C;--card:#161C24;--acc:#2DD4BF;--good:#4ADE80;--bad:#F87171;--mid:#FBBF24;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
+main{max-width:760px;margin:0 auto;padding:28px 18px 64px}
+h1{font-size:22px;margin:0;font-weight:600;letter-spacing:-.01em}
+.sub{color:var(--mut);margin:2px 0 22px;font-size:14px}
+nav{display:flex;gap:20px;overflow-x:auto;border-bottom:1px solid var(--line);margin-bottom:26px}
+nav button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 0;font:inherit;font-size:15px;color:var(--mut);cursor:pointer;white-space:nowrap}
+nav button[aria-selected="true"]{color:var(--ink);border-color:var(--acc);font-weight:500}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+section{display:none}section.on{display:block}
+h2{font-size:30px;line-height:1.15;margin:0 0 4px;font-weight:600;letter-spacing:-.02em}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+input,select{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);min-width:0}
+.btn{font:inherit;padding:10px 16px;border:0;border-radius:6px;background:var(--acc);color:#fff;font-weight:500;cursor:pointer}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{color:#06201C}}
+.ghost{background:none;border:1px solid var(--line);color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:18px 0}
+.grid div{background:var(--card);padding:12px 14px}
+.grid small{display:block;color:var(--mut);font-size:13px}
+.grid b{font-weight:600;font-size:18px}
+.v{font-size:15px;margin:0 0 8px}
+.good{color:var(--good)}.bad{color:var(--bad)}.mid{color:var(--mid)}
+.track{position:relative;height:6px;background:var(--line);border-radius:3px;margin:30px 0 8px}
+.track i{position:absolute;top:-5px;width:2px;height:16px;background:var(--ink)}
+.track em{position:absolute;top:-26px;font-style:normal;font-size:12px;color:var(--mut);transform:translateX(-50%);white-space:nowrap}
+.lab{display:flex;justify-content:space-between;font-size:13px;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left;color:var(--mut)}
+th{font-weight:600}td.best{font-weight:600;color:var(--acc)}
+.wrap{overflow-x:auto}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--mut)}
+.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:18px}
+.note{font-size:13px;color:var(--mut);margin-top:34px;border-top:1px solid var(--line);padding-top:14px}
+svg{width:100%;height:auto;display:block}
+.li{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);gap:10px}
+.li span{color:var(--mut);font-size:14px}
+.empty{color:var(--mut)}
+@media (prefers-reduced-motion:no-preference){.track i{transition:left .4s}}
+</style>
+</head>
+<body>
+<main>
+<h1>Stockwise</h1>
+<p class="sub">See whether a stock looks cheap or expensive, using your own assumptions.</p>
+<nav role="tablist" id="tabs">
+<button role="tab" data-t="search" aria-selected="true">Search</button>
+<button role="tab" data-t="compare" aria-selected="false">Compare</button>
+<button role="tab" data-t="proj" aria-selected="false">Projections</button>
+<button role="tab" data-t="calc" aria-selected="false">Compound calculator</button>
+<button role="tab" data-t="watch" aria-selected="false">Watchlist</button>
+</nav>
+
+<section id="search" class="on">
+<div class="row"><input id="q" list="syms" placeholder="Ticker, e.g. AAPL" aria-label="Ticker" autocomplete="off"><datalist id="syms"></datalist><button class="btn" id="go">Look up</button></div>
+<div id="out"><p class="empty">Enter a ticker to see its valuation.</p></div>
+</section>
+
+<section id="compare">
+<div class="row" id="cmpSel"></div>
+<div class="wrap" id="cmpOut"></div>
+</section>
+
+<section id="proj">
+<div class="f">
+<label>Stock<select id="pS"></select></label>
+<label>EPS growth per year (%)<input id="pG" type="number" step="0.5"></label>
+<label>Future P/E<input id="pP" type="number" value="20"></label>
+<label>Return you want (%)<input id="pR" type="number" value="10"></label>
+<label>Years<input id="pY" type="number" value="5" min="1" max="15"></label>
+</div>
+<div id="pOut"></div>
+</section>
+
+<section id="calc">
+<div class="f">
+<label>Starting amount ($)<input id="cI" type="number" value="1000"></label>
+<label>Added each month ($)<input id="cM" type="number" value="200"></label>
+<label>Return per year (%)<input id="cR" type="number" value="8" step="0.5"></label>
+<label>Years<input id="cY" type="number" value="20" min="1" max="60"></label>
+</div>
+<div id="cOut"></div>
+</section>
+
+<section id="watch">
+<div class="row"><input id="wq" list="syms" placeholder="Add a ticker" aria-label="Add a ticker" autocomplete="off"><button class="btn" id="wa">Add to watchlist</button></div>
+<div id="wOut"></div>
+</section>
+
+<p class="note">Data from Financial Modeling Prep, updated after each market close. Growth is each company’s past earnings growth, so set your own in Projections. Not investment advice.</p>
+</main>
+<script>
+// Live data from FMP through /api/stock (end of day). Loaded stocks are kept in D.
+var D={};
+function getStock(s){return D[String(s).toUpperCase().trim()]||null}
+async function load(s){s=String(s).toUpperCase().trim();if(!/^[A-Z.\-]{1,10}$/.test(s))throw new Error("Enter a valid ticker, like AAPL.");if(D[s])return D[s];var r=await fetch("/api/stock?symbol="+encodeURIComponent(s)),j;try{j=await r.json()}catch(e){j={}}if(!r.ok)throw new Error(j.error||"Could not load "+s+".");D[s]=j;T=Object.keys(D);refreshSel();return j}
+function refreshSel(){var sel=$("#pS").value;$("#pS").innerHTML=opts(sel||T[0]);if(sel)proj();else projReset();buildCmp();drawW()}
+var $=function(s){return document.querySelector(s)};
+var T=Object.keys(D);
+var money=function(n){return"$"+n.toLocaleString("en-US",{maximumFractionDigits:2})};
+function fair(x,g,pe,r,y){return x.e*Math.pow(1+g/100,y)*pe/Math.pow(1+r/100,y)}
+function verdict(p,f){return p<f*.85?["Undervalued","good"]:p>f*1.15?["Overvalued","bad"]:["Fairly valued","mid"]}
+function opts(sel){return T.map(function(t){return'<option value="'+t+'"'+(t===sel?" selected":"")+'>'+t+" – "+D[t].n+"</option>"}).join("")}
+
+// Tabs
+document.querySelectorAll("#tabs button").forEach(function(b){b.onclick=function(){
+document.querySelectorAll("#tabs button").forEach(function(o){o.setAttribute("aria-selected",o===b)});
+document.querySelectorAll("section").forEach(function(s){s.classList.toggle("on",s.id===b.dataset.t)});}});
+
+// Search
+function card(sym){
+var x=getStock(sym);if(!x)return'<p class="empty">No data for “'+sym+'”. Try one of: '+T.join(", ")+".</p>";
+var f=fair(x,x.g,20,10,5),v=verdict(x.p,f),pos=Math.max(4,Math.min(96,x.p/(f*2)*100)),fp=50;
+return"<h2>"+sym.toUpperCase()+"</h2><div class='sub'>"+x.n+"</div>"+
+"<p class='v'><b class='"+v[1]+"'>"+v[0]+"</b> at "+money(x.p)+". Estimated fair value is "+money(f)+" (20× P/E in 5 years, 10% yearly return wanted).</p>"+
+"<div class='track'><i style='left:"+pos+"%'></i><em style='left:"+pos+"%'>Price</em><i style='left:"+fp+"%;background:var(--acc)'></i><em style='left:"+fp+"%;top:12px;color:var(--acc)'>Fair value</em></div><div class='lab'><span>Cheaper</span><span>Pricier</span></div>"+
+"<div class='grid'><div><small>Price</small><b>"+money(x.p)+"</b></div><div><small>P/E</small><b>"+(x.p/x.e).toFixed(1)+"</b></div><div><small>EPS growth</small><b>"+x.g+"%</b></div><div><small>Net margin</small><b>"+x.m+"%</b></div><div><small>Revenue growth</small><b>"+x.r+"%</b></div><div><small>Debt to equity</small><b>"+(x.d==null?"–":x.d)+"</b></div></div>"+
+"<button class='btn ghost' onclick=\"addW('"+sym.toUpperCase()+"')\">Add to watchlist</button>";}
+$("#go").onclick=async function(){var q=$("#q").value;$("#out").innerHTML='<p class="empty">Loading…</p>';try{await load(q);$("#out").innerHTML=card(q.toUpperCase().trim())}catch(e){$("#out").innerHTML='<p class="empty">'+e.message+"</p>"}};
+$("#q").onkeydown=function(e){if(e.key==="Enter")$("#go").click()};
+
+// Compare
+var cs=["","",""];
+function buildCmp(){cs=cs.map(function(c,i){return D[c]?c:(T[i]||T[0]||"")});$("#cmpSel").innerHTML=[0,1,2].map(function(i){return"<select aria-label='Stock "+(i+1)+"' data-i='"+i+"'>"+opts(cs[i])+"</select>"}).join("");document.querySelectorAll("#cmpSel select").forEach(function(s){s.onchange=function(){cs[+s.dataset.i]=s.value;cmp()}});cmp()}
+function cmp(){
+var ok=cs.filter(function(c){return D[c]});if(ok.length<2){$("#cmpOut").innerHTML='<p class="empty">Look up at least two stocks in Search to compare them.</p>';return}
+var xs=ok.map(function(s){var x=D[s];return{s:s,x:x,f:fair(x,x.g,20,10,5),pe:x.p/x.e}});
+var rows=[["Price",function(o){return o.x.p},money,0],["P/E",function(o){return o.pe},function(n){return n.toFixed(1)},-1],["EPS growth",function(o){return o.x.g},function(n){return n+"%"},1],["Net margin",function(o){return o.x.m},function(n){return n+"%"},1],["Revenue growth",function(o){return o.x.r},function(n){return n+"%"},1],["Debt to equity",function(o){return o.x.d==null?Infinity:o.x.d},function(n){return n===Infinity?"–":n},-1],["Fair value",function(o){return o.f},money,0],["Price vs fair value",function(o){return o.x.p/o.f-1},function(n){return(n>0?"+":"")+(n*100).toFixed(0)+"%"},-1]];
+var h="<table><tr><th></th>"+xs.map(function(o){return"<th>"+o.s+"</th>"}).join("")+"</tr>";
+rows.forEach(function(r){var vals=xs.map(r[1]),best=r[3]===0?null:(r[3]>0?Math.max.apply(0,vals):Math.min.apply(0,vals));
+h+="<tr><td>"+r[0]+"</td>"+vals.map(function(v){return"<td"+(v===best?" class='best'":"")+">"+r[2](v)+"</td>"}).join("")+"</tr>"});
+$("#cmpOut").innerHTML=h+"</table><p class='sub' style='margin-top:12px'>Highlighted cells are the strongest in each row where higher or lower is clearly better.</p>"}
+
+
+// Projections
+function proj(){
+var x=D[$("#pS").value];if(!x){$("#pOut").innerHTML='<p class="empty">Look up a stock in Search first.</p>';return}
+var g=+$("#pG").value,pe=+$("#pP").value,r=+$("#pR").value,y=Math.max(1,Math.min(15,Math.round(+$("#pY").value)||5));
+var eps=x.e*Math.pow(1+g/100,y),target=eps*pe,f=target/Math.pow(1+r/100,y),ann=(Math.pow(target/x.p,1/y)-1)*100,v=verdict(x.p,f);
+var pts=[],W=600,H=180,mx=x.e*Math.pow(1+g/100,y);
+for(var i=0;i<=y;i++)pts.push(x.e*Math.pow(1+g/100,i));
+var bw=W/(y+1),bars=pts.map(function(p,i){var h=p/mx*(H-30);return"<rect x='"+(i*bw+4)+"' y='"+(H-h)+"' width='"+(bw-8)+"' height='"+h+"' rx='3' fill='var(--acc)' opacity='"+(.35+.65*i/y)+"'/><text x='"+(i*bw+bw/2)+"' y='"+(H-h-6)+"' text-anchor='middle' font-size='12' fill='var(--mut)'>"+p.toFixed(1)+"</text>"}).join("");
+$("#pOut").innerHTML="<p class='v'>With these assumptions, the price in "+y+" years would be about <b>"+money(target)+"</b>, which works out to <b>"+ann.toFixed(1)+"% a year</b> from today’s "+money(x.p)+".</p><p class='v'>To earn "+r+"% a year, you could pay up to <b>"+money(f)+"</b> today. At "+money(x.p)+", it looks <b class='"+v[1]+"'>"+v[0].toLowerCase()+"</b>.</p><svg viewBox='0 0 "+W+" "+(H+4)+"' role='img' aria-label='Projected earnings per share by year'>"+bars+"</svg><div class='lab'><span>Today</span><span>Earnings per share, year by year</span><span>Year "+y+"</span></div>"}
+function projReset(){var x=D[$("#pS").value];if(x)$("#pG").value=x.g;proj()}
+$("#pS").onchange=projReset;["pG","pP","pR","pY"].forEach(function(i){$("#"+i).oninput=proj});projReset();
+
+// Compound calculator
+function calc(){
+var i=+$("#cI").value||0,m=+$("#cM").value||0,r=(+$("#cR").value||0)/100/12,y=Math.max(1,Math.min(60,Math.round(+$("#cY").value)||1)),b=i,put=i,pts=[b];
+for(var k=1;k<=y*12;k++){b=b*(1+r)+m;put+=m;if(k%12===0)pts.push(b)}
+var W=600,H=180,mx=Math.max.apply(0,pts),d=pts.map(function(p,j){return(j/(pts.length-1)*W).toFixed(1)+","+(H-p/mx*(H-10)).toFixed(1)}).join(" ");
+$("#cOut").innerHTML="<div class='grid'><div><small>Final balance</small><b>"+money(Math.round(b))+"</b></div><div><small>You put in</small><b>"+money(Math.round(put))+"</b></div><div><small>Growth earned</small><b>"+money(Math.round(b-put))+"</b></div></div><svg viewBox='0 0 "+W+" "+(H+4)+"' role='img' aria-label='Balance over time'><polyline points='"+d+"' fill='none' stroke='var(--acc)' stroke-width='3' stroke-linejoin='round'/></svg><div class='lab'><span>Today</span><span>Year "+y+"</span></div>"}
+["cI","cM","cR","cY"].forEach(function(i){$("#"+i).oninput=calc});calc();
+
+// Watchlist (saved in this browser)
+var W=[];try{W=JSON.parse(localStorage.getItem("sw-watch")||"[]")}catch(e){}if(!Array.isArray(W)||!W.length&&!localStorage.getItem&&0)W=[];
+function save(){try{localStorage.setItem("sw-watch",JSON.stringify(W))}catch(e){}}
+async function addW(s){s=String(s).toUpperCase().trim();try{await load(s)}catch(e){$("#wOut").innerHTML='<p class="empty">'+e.message+"</p>";return}if(W.indexOf(s)<0){W.push(s);save()}drawW()}
+function rmW(s){W=W.filter(function(t){return t!==s});save();drawW()}
+function drawW(){var L=W.filter(function(s){return D[s]});$("#wOut").innerHTML=L.length?L.map(function(s){var x=D[s],f=fair(x,x.g,20,10,5),v=verdict(x.p,f);return"<div class='li'><div><b>"+s+"</b> <span>"+x.n+"</span></div><div>"+money(x.p)+" <b class='"+v[1]+"'>"+v[0]+"</b></div><button class='btn ghost' onclick=\"rmW('"+s+"')\" aria-label='Remove "+s+"'>Remove</button></div>"}).join(""):'<p class="empty">Your watchlist is empty. Add a ticker above.</p>'}
+$("#wa").onclick=function(){addW($("#wq").value);$("#wq").value=""};drawW();
+(async function(){var init=W.length?W.slice():["AAPL","MSFT","NVDA"];$("#out").innerHTML='<p class="empty">Loading your stocks…</p>';for(var i=0;i<init.length;i++){try{await load(init[i])}catch(e){if(i===0)$("#out").innerHTML='<p class="empty">'+e.message+"</p>"}}if(T.length)$("#out").innerHTML='<p class="empty">Enter a ticker to see its valuation.</p>'})();
+</script>
+</body>
+</html>
